@@ -9,6 +9,7 @@
 
 - [Key Differences Between COLLSCAN and IXSCAN](#key-differences-between-collscan-and-ixscan)
 
+- [Types of SCAN](#types-of-Scan)
 
 ---
 
@@ -33,8 +34,8 @@ Before indexing in MongoDB, queries were processed by performing a **collection 
 ### **Step-by-Step Guide (Without Indexing):**
 
 1. **Open MongoDB Compass** and navigate to the `transactions` collection.  
-2. Ensure no index exists on the `transaction_type` field by checking the `Indexes` tab. If an index exists, remove it (if applicable).  
-3. Go to the `Documents` tab and run the following query in the filter section:  
+
+2. Go to the `Documents` tab and run the following query in the filter section:  
 
   - **Query:**
 
@@ -44,7 +45,7 @@ Before indexing in MongoDB, queries were processed by performing a **collection 
 
 ![alt text](images/img1.png)
 
-4. Click on the **Explain Plan** tab and analyze the output.  
+3. Click on the **Explain Plan** tab and analyze the output.  
 
 #### **Explain Plan:**  
 
@@ -300,5 +301,112 @@ Let's say you want to optimize a query that searches for all documents where `tr
 | **Execution Time**     | Higher                          | Lower                          |
 | **Resources Used**     | High CPU and memory usage       | Lower resource consumption     |
 | **Scalability**        | Decreases with larger datasets  | Consistent performance         |
+
+---
+
+### **Types of SCAN**
+
+In MongoDB, the `explain` method provides details on how a query is executed. The **execution plan** includes details on the type of scans used to retrieve data. Here are the different types of scans you might encounter:
+
+
+1. **COLLSCAN (Collection Scan)**
+
+   - **Description**: Scans every document in a collection to find matching documents.
+   - **When Used**: Occurs when no suitable index exists for the query.
+   - **Performance**: Inefficient for large collections as it requires a full scan.
+   - **Example**:
+     ```javascript
+     db.collection.explain().find({ field: "value" });
+     ```
+     - If `field` is not indexed, MongoDB will perform a collection scan.
+
+
+2. **IXSCAN (Index Scan)**
+
+   - **Description**: Scans an index to find documents that match the query criteria.
+   - **When Used**: When a suitable index exists for the query.
+   - **Performance**: Much faster than a collection scan for large datasets.
+   - **Example**:
+     ```javascript
+     db.collection.createIndex({ field: 1 });
+     db.collection.explain().find({ field: "value" });
+     ```
+   - MongoDB uses the index on `field` for the scan.
+
+
+3. **FETCH**
+
+   - **Description**: Retrieves the actual document from the collection after finding the matching index entries.
+   - **When Used**: Used in conjunction with `IXSCAN` when fields not in the index need to be returned or filtered.
+   - **Performance**: Adds overhead if many documents need to be fetched.
+   - **Example**:
+     ```javascript
+     db.collection.createIndex({ field: 1 });
+     db.collection.explain().find({ field: "value" }).projection({ anotherField: 1 });
+     ```
+
+4. **COUNT_SCAN**
+
+   - **Description**: Optimized scan to count documents using the index without fetching the documents.
+   - **When Used**: For counting documents that match query criteria.
+   - **Performance**: Faster than a full collection scan if the count query can be satisfied by the index.
+   - **Example**:
+     ```javascript
+     db.collection.createIndex({ field: 1 });
+     db.collection.explain().count({ field: "value" });
+     ```
+
+
+5. **SHARD_MERGE**
+
+   - **Description**: Combines results from multiple shards in a sharded cluster.
+   - **When Used**: For queries across a sharded collection.
+   - **Performance**: Depends on the efficiency of shard-level execution.
+   - **Example**:
+     - Used automatically in sharded cluster queries.
+
+
+6. **SORT**
+
+   - **Description**: Sorts the query results based on specified fields.
+   - **When Used**: When query results need to be sorted and no suitable index exists.
+   - **Performance**: Sorting in memory can be expensive, especially for large datasets.
+   - **Example**:
+     ```javascript
+     db.collection.explain().find({}).sort({ field: 1 });
+     ```
+
+
+
+7. **TEXT**
+
+   - **Description**: Executes a full-text search query using a text index.
+   - **When Used**: For text search queries.
+   - **Performance**: Efficient when a text index exists for the queried field.
+   - **Example**:
+     ```javascript
+     db.collection.createIndex({ content: "text" });
+     db.collection.explain().find({ $text: { $search: "example" } });
+     ```
+
+
+8. **GEONEAR (Geospatial Search)**
+
+   - **Description**: Performs geospatial queries to find documents near a specific point.
+   - **When Used**: For geospatial queries using 2D or 2D sphere indexes.
+   - **Performance**: Efficient when geospatial indexes are used.
+   - **Example**:
+     ```javascript
+     db.collection.createIndex({ location: "2dsphere" });
+     db.collection.explain().find({
+       location: {
+         $near: {
+           $geometry: { type: "Point", coordinates: [longitude, latitude] },
+           $maxDistance: 1000
+         }
+       }
+     });
+     ```
+
 
 ---
