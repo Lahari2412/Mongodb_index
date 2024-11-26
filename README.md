@@ -52,7 +52,7 @@ Before indexing in MongoDB, queries were processed by performing a **collection 
 - The explain plan will show a **COLLSCAN** (collection scan), meaning MongoDB is scanning all documents in the `transactions` collection to find those matching `transaction_type: "Deposit"`.  
 - This will result in high resource usage, especially for large datasets, and the number of documents scanned will equal the total number of documents in the collection.  
 
-- **The explain plan includes a Query Performance Summary with information on the execution of your query such as:**
+- The explain plan includes a **Query Performance Summary** with information on the execution of your query such as:
 
   - Execution time
 
