@@ -1,7 +1,18 @@
-# MongoDB Indexing
+# **MongoDB Indexing**
 
 
-## Before Indexing in MongoDB
+## **Table of Contents**
+
+- [Before Indexing in MongoDB](#Before-Indexing-in-MongoDB)
+
+- [AfterIndexing in MongoDB](#before-indexing-in-mongodb)
+
+- [Key Differences Between COLLSCAN and IXSCAN](#key-differences-between-collscan-and-ixscan)
+
+
+---
+
+## **Before Indexing in MongoDB**
 
 Before indexing in MongoDB, queries were processed by performing a **collection scan**, where every document in the collection was checked sequentially. This approach was inefficient for large datasets, leading to high query latency and increased resource usage. Sorting results also required scanning and sorting the entire dataset in memory, which could slow down performance.
 
@@ -17,7 +28,7 @@ Before indexing in MongoDB, queries were processed by performing a **collection 
 5. **Unoptimized Sorting**: If a query requires sorting, MongoDB must sort the entire result set in memory, which can lead to slow performance or even query failure if the result set exceeds the available memory.
 
 
-**Example:**
+### **Example:**
 
 ### **Step-by-Step Guide (Without Indexing):**
 
@@ -25,7 +36,7 @@ Before indexing in MongoDB, queries were processed by performing a **collection 
 2. Ensure no index exists on the `transaction_type` field by checking the `Indexes` tab. If an index exists, remove it (if applicable).  
 3. Go to the `Documents` tab and run the following query in the filter section:  
 
-- **Query:**
+  - **Query:**
 
    ```javascript
    { transaction_type: "Deposit" }
@@ -35,20 +46,20 @@ Before indexing in MongoDB, queries were processed by performing a **collection 
 
 4. Click on the **Explain Plan** tab and analyze the output.  
 
-### **Explain Plan :**  
+#### **Explain Plan:**  
 
 - The explain plan will show a **COLLSCAN** (collection scan), meaning MongoDB is scanning all documents in the `transactions` collection to find those matching `transaction_type: "Deposit"`.  
 - This will result in high resource usage, especially for large datasets, and the number of documents scanned will equal the total number of documents in the collection.  
 
-**The explain plan includes a Query Performance Summary with information on the execution of your query such as:**
+- **The explain plan includes a Query Performance Summary with information on the execution of your query such as:**
 
-- Execution time
+  - Execution time
 
-- The number of returned documents
+  - The number of returned documents
 
-- The number of examined documents
+  - The number of examined documents
 
-- The number of examined index keys
+  - The number of examined index keys
 
 *Note:*
 
@@ -56,10 +67,10 @@ Before indexing in MongoDB, queries were processed by performing a **collection 
 - You can also view the explain details in raw JSON format by selecting the Raw Output view.
 
 
-
 ![alt text](images/img2.png)
 
-**Output of MongoDB's `explain` command**
+
+#### **Output of MongoDB's `explain` command**
 
 
 1. **`stage`**:  
@@ -115,14 +126,13 @@ Before indexing in MongoDB, queries were processed by performing a **collection 
     - `310` documents were examined to find the `155` that matched the filter.
 
 
+---
 
+## **After Indexing in MongoDB**
 
-## Indexing and Query Optimization
-
-### 1. Understanding Indexes in MongoDB
+### **Understanding Indexes in MongoDB**
 
 Indexes in MongoDB are crucial for improving query performance. Without indexes, MongoDB performs a collection scan, i.e., it scans every document in a collection to select those that match the query. Indexes support efficient query execution by allowing MongoDB to quickly locate the data that matches a query. This reduces query latency, optimizes resource usage, and improves the scalability of the application.
-
 
 ### **Advantages of Indexing**
 
@@ -133,14 +143,11 @@ Indexes in MongoDB are crucial for improving query performance. Without indexes,
 5. **Efficient Sorting**: MongoDB can use an index to return sorted results without requiring additional in-memory operations.
 
 
-
-### 2. Creating an Index
-
-#### Example: Creating a Single-Field Index on `transaction_type`
+### **Example: Creating a Single-Field Index on `transaction_type`**
 
 Let's say you want to optimize a query that searches for all documents where `transaction_type` is "Deposit".
 
-**Step-by-Step Guide:**
+### **Step-by-Step Guide:**
 
 1. **Open MongoDB Compass** and navigate to the `transactions` collection.
 2. Click on the `Indexes` tab.
@@ -151,19 +158,18 @@ Let's say you want to optimize a query that searches for all documents where `tr
 7. Click `Create Index`.
 ![NameIndex](images/NameIndex.png)
 
-**Query:**
+- **Query:**
 
 ```javascript
 { transaction_type: "Deposit" }
 ```
 ![TypeQuery](images/TypeQuery.png)
 
-**Explain Plan:**
+#### **Explain Plan:**
 
 - The explain plan will now show an **IXSCAN** (index scan) instead of a **COLLSCAN**.  
 - MongoDB uses the index on `transaction_type` to directly locate the matching documents.  
 - The number of documents examined will be much smaller, corresponding to only the matching documents.
-
 
 
 ![alt text](images/img3.png)
@@ -177,7 +183,7 @@ Let's say you want to optimize a query that searches for all documents where `tr
 
 
 
-**Output of MongoDB's `explain` command**
+#### **Output of MongoDB's `explain` command**
 
 - **General Execution Information**
 
@@ -221,7 +227,6 @@ Let's say you want to optimize a query that searches for all documents where `tr
    Indicates whether the operation has completed processing all documents in its scope.  
    - Value: `1` (`true`), meaning the operation has reached the end.
 
----
 
 - **Index Information**
 
@@ -265,7 +270,6 @@ Let's say you want to optimize a query that searches for all documents where `tr
    Describes the range of values scanned in the index for the query.  
    - Value: `{ "transaction_type": [["Deposit", "Deposit"]] }` (Only documents with `transaction_type` equal to `"Deposit"` were scanned).
 
----
 
 - **Document and Index Operations**
 
@@ -286,8 +290,6 @@ Let's say you want to optimize a query that searches for all documents where `tr
    - Value: `0`. 
 
 ---
-
-
 
 ### **Key Differences Between COLLSCAN and IXSCAN**
 
